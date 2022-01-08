@@ -1,0 +1,2 @@
+def records(*args):
+	pass

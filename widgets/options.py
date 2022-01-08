@@ -1,0 +1,2 @@
+def options(*args):
+	pass
