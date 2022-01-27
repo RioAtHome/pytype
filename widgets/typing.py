@@ -8,7 +8,10 @@ logging.basicConfig(filename='example.log')
 # Maybe we need to lift things to main? or shorten name
 # Stay on one naming convention please!!
 class Typing:
-	def __init__(self, eventManager):
+	def __init__(self, eventManager, oldbody, parent):
+		self.oldbody = oldbody
+		self.parent = parent
+
 		self.firstentry = True
 		self.eventManager = eventManager
 		self.timerComponent = Timer(eventManager=self.eventManager)
@@ -42,7 +45,7 @@ class Typing:
 			pass
 
 	def back_menu(self, *user_args):
-		pass
+		self.parent.widget_list = [urwid.Pile(self.oldbody)]
 
 	async def timer_done(self, *user_args):
 		await self.Timertask

@@ -22,18 +22,17 @@ class Main:
 		for child in childrenWidgets:
 			self.button = urwid.Button(child)
 			try:
-				urwid.connect_signal(self.button, 'click', self.functionMap[child], user_args=[eventManager])
+				urwid.connect_signal(self.button, 'click', self.functionMap[child], user_args=[])
 			except KeyError:
 					traceback.print_exc()
 			self.body.append(urwid.AttrMap(self.button, None, focus_map='reversed'))
-		self.walker = urwid.SimpleFocusListWalker(self.body, wrap_around=True)
 		
 		self.mainPile = urwid.Pile(self.body)
 		self.pad = urwid.Padding(self.mainPile, left=2, right=2)
 		self.fill = urwid.Filler(self.pad)
 
 	def start(self, *user_args):
-		self.typingComponent = [Typing(user_args[0]).componentPile]
+		self.typingComponent = [Typing(eventManager=eventManager, oldbody=self.body, parent=self.mainPile).componentPile]
 		self.mainPile.widget_list = self.typingComponent
 
 
