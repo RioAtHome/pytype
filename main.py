@@ -1,9 +1,13 @@
 import urwid
 import logging
+import asyncio
 from widgets.typing import Typing
 
 MENU_ITEMS = ['Start', 'Options', 'Previous Records', 'Quit']
+
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+
+eventManager = asyncio.get_event_loop()
 
 class Main:
 	def __init__(self, childrenWidgets):
@@ -18,7 +22,7 @@ class Main:
 		for child in childrenWidgets:
 			self.button = urwid.Button(child)
 			try:
-				urwid.connect_signal(self.button, 'click', self.functionMap[child], user_args=[])
+				urwid.connect_signal(self.button, 'click', self.functionMap[child], user_args=[eventManager])
 			except KeyError:
 					traceback.print_exc()
 			self.body.append(urwid.AttrMap(self.button, None, focus_map='reversed'))
@@ -29,7 +33,7 @@ class Main:
 		self.fill = urwid.Filler(self.pad)
 
 	def start(self, *user_args):
-		self.typingComponent = [Typing()]
+		self.typingComponent = [Typing(user_args[0]).componentPile]
 		self.mainPile.widget_list = self.typingComponent
 
 
@@ -43,5 +47,6 @@ class Main:
 		raise urwid.ExitMainLoop()
 
 if __name__ == "__main__":
+	asyncloop = urwid.AsyncioEventLoop(loop=eventManager)
 	wid = Main(MENU_ITEMS)
-	urwid.MainLoop(wid.fill).run()
+	urwid.MainLoop(wid.fill, event_loop=asyncloop).run()
