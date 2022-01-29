@@ -6,25 +6,28 @@ import asyncio
 
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 class Timer:
-	def __init__(self, eventManager,timer=10):
+	def __init__(self, timer=30):
 		self.timeCount = timer
-		self.eventManager = eventManager
 		self.timeView = urwid.Text(f'Timer:{self.timeCount}')
 	
-	async def startTimer(self, stop=False):
-		timer = self.timeCount
+	def set_timer(self, timer):
+		self.timeCount = timer
+		self.timeView.set_text(f'Timer:{self.timeCount}')
+			
+	async def startTimer(self):
+		self.timer = self.timeCount
 		while True:
-			if timer == 0:
+			if self.timer == 0:
 				return
 
-			timer -= 1
-			self.timeView.set_text(f'Timer:{timer}')
+			self.timer -= 1
+			self.timeView.set_text(f'Timer:{self.timer}')
 			await asyncio.sleep(1)		
 
 	def resetTimer(self, task):
 		task.cancel()
-		self.timeCount = 15
 		self.timeView.set_text(f'Timer:{self.timeCount}')
 
 	def cancel_timer(self, task):
 		task.cancel()
+		return (self.timeCount - self.timer)
