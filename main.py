@@ -7,10 +7,17 @@ MENU_ITEMS = ['Start', 'Options', 'Previous Records', 'Quit']
 
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
-eventManager = asyncio.get_event_loop()
+palette = [('netural', '', ''),
+		   ('wronginput', 'dark red',''),
+		   ('rightinput', 'dark green', '')
+]
+
+# cut it down, remove options and records, and put a timer to set on bottom...
 
 class Main:
-	def __init__(self, childrenWidgets):
+	def __init__(self, childrenWidgets=MENU_ITEMS):
+		self.eventManager = asyncio.get_event_loop()
+		
 		self.functionMap = {
 			"Start":self.start,
 			"Options":self.options,
@@ -31,8 +38,16 @@ class Main:
 		self.pad = urwid.Padding(self.mainPile, left=2, right=2)
 		self.fill = urwid.Filler(self.pad)
 
+		self.asyncloop = urwid.AsyncioEventLoop(loop=self.eventManager)
+		self.urwidloop = urwid.MainLoop(self.fill, palette, event_loop=self.asyncloop)
+		self.urwidloop.run()
+
 	def start(self, *user_args):
-		self.typingComponent = [Typing(eventManager=eventManager, oldbody=self.body, parent=self.mainPile).componentPile]
+		self.typingComponent = [Typing(eventManager=self.eventManager,
+									   oldbody=self.body,
+									   parent=self.mainPile,
+									   urwidloop=self.urwidloop).componentPile]
+		
 		self.mainPile.widget_list = self.typingComponent
 
 
@@ -46,6 +61,4 @@ class Main:
 		raise urwid.ExitMainLoop()
 
 if __name__ == "__main__":
-	asyncloop = urwid.AsyncioEventLoop(loop=eventManager)
-	wid = Main(MENU_ITEMS)
-	urwid.MainLoop(wid.fill, event_loop=asyncloop).run()
+	Main()

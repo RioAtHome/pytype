@@ -25,3 +25,6 @@ class Timer:
 		task.cancel()
 		self.timeCount = 15
 		self.timeView.set_text(f'Timer:{self.timeCount}')
+
+	def cancel_timer(self, task):
+		task.cancel()
