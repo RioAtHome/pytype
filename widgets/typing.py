@@ -10,138 +10,135 @@ logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBU
 # Ugly code, too many if/else statement... think of a way around that my man
 
 class Typing:
-	def __init__(self, eventManager, urwidloop, parent):
-		self.urwidloop = urwidloop
-		self.parent = parent
+	def __init__(self, event_manager, urwid_loop, parent_widget):
+		self.urwid_loop = urwid_loop
+		self.parent_widget = parent_widget
 
-		self.text = get_text()
-		self.sentenceArr = list(self.text)
-		self.checkArr = []
+		self.text = get_text(3)
+		self.sentence_array = list(self.text)
+		self.checking_array = []
 
-		self.previousState = []
-		self.indexpointer = 0
+		self.previous_state = []
+		self.cursor_pointer = 0
 
-		self.eventManager = eventManager
-		self.timerComponent = Timer()
-		self.timerWidget = self.timerComponent.timeView
+		self.event_manager = event_manager
+		self.timer_component = Timer()
+		self.timer_widget = self.timer_component.time_view
 
-		self.typeText = urwid.Text(('netural', self.text))
-		self.cursorPlaceholder = urwid.Edit()
+		self.text_to_type = urwid.Text(('netural', self.text))
+		self.cursor_placer = urwid.Edit()
 
 
-		self.resetButton = urwid.Button("Reset")
-		self.quitButton = urwid.Button("Quit")
-		self.newButton = urwid.Button("New Test")
-		self.setTimerEdit = urwid.IntEdit("Timer:")
+		self.reset_button = urwid.Button("Reset")
+		self.quit_button = urwid.Button("Quit")
+		self.new_test_button = urwid.Button("New Test")
+		self.set_timer_edit = urwid.IntEdit("Timer:")
 
-		urwid.connect_signal(self.quitButton, 'click', self.exit)
-		urwid.connect_signal(self.newButton, 'click', self.new_test)
-		urwid.connect_signal(self.resetButton, 'click', self.reset_test)
-		urwid.connect_signal(self.cursorPlaceholder, 'change', self.startTest)
+		urwid.connect_signal(self.quit_button, 'click', self.exit)
+		urwid.connect_signal(self.new_test_button, 'click', self.new_test)
+		urwid.connect_signal(self.reset_button, 'click', self.reset_test)
+		urwid.connect_signal(self.cursor_placer, 'change', self.start_test)
 
-		self.buttonsList = [self.resetButton, self.newButton, self.quitButton]
-		self.colButtoms = urwid.Columns(self.buttonsList)
-		self.timerCol = urwid.Columns([self.setTimerEdit])
+		self.list_buttons = [self.reset_button, self.new_test_button, self.quit_button]
+		self.columns_buttons = urwid.Columns(self.list_buttons)
+		self.timer_column = urwid.Columns([self.set_timer_edit])
 		
-		self.componentBody = [self.timerWidget, self.typeText, self.cursorPlaceholder , self.colButtoms, self.timerCol]
-		self.componentPile = urwid.Pile(self.componentBody)
+		self.component_body = [self.timer_widget, self.text_to_type, self.cursor_placer , self.columns_buttons, self.timer_column]
+		self.component_pile = urwid.Pile(self.component_body)
 		
-	def startTest(self, *user_args):
-		if self.indexpointer != len(self.sentenceArr) - 1:
-			if self.indexpointer == 0:
-				if self.setTimerEdit.value() != 0:
+
+
+	def start_test(self, *user_args):
+		if self.cursor_pointer != len(self.sentence_array) - 1:
+			if self.cursor_pointer == 0:
+				if self.set_timer_edit.value() != 0:
 					logging.info('HUH?')
-					self.timerComponent.set_timer(timer=self.setTimerEdit.value())
+					self.timer_component.set_timer(timer=self.set_timer_edit.value())
 
-				self.keyEntry = user_args[1]
+				self.keypress = user_args[1]
 
-				self.Timertask = self.eventManager.create_task(self.timerComponent.startTimer())
-				self.eventManager.create_task(self.timer_done())
+				self.timer_task = self.event_manager.create_task(self.timer_component.start_timer())
+				self.event_manager.create_task(self.timer_done())
 
-				if self.keyEntry == self.sentenceArr[self.indexpointer]:
-					self.previousState.append(('rightinput', self.text[self.indexpointer:self.indexpointer+1]))
-					self.checkArr.append(True)
+				if self.keypress == self.sentence_array[self.cursor_pointer]:
+					self.previous_state.append(('rightinput', self.text[self.cursor_pointer:self.cursor_pointer+1]))
+					self.checking_array.append(True)
 					
-					self.typeText.set_text([ self.previousState,
-											('netural', self.text[self.indexpointer+1:])])
+					self.text_to_type.set_text([ self.previous_state,
+											('netural', self.text[self.cursor_pointer+1:])])
 					
-					self.urwidloop.screen.clear()
+					self.urwid_loop.screen.clear()
 
-				elif self.keyEntry != self.sentenceArr[self.indexpointer]:
-					self.previousState.append(('wronginput', self.text[self.indexpointer:self.indexpointer+1]))
-					self.checkArr.append(False)
-					self.typeText.set_text([self.previousState,
-											('netural', self.text[self.indexpointer+1:])])
-				self.indexpointer +=1
+				elif self.keypress != self.sentence_array[self.cursor_pointer]:
+					self.previous_state.append(('wronginput', self.text[self.cursor_pointer:self.cursor_pointer+1]))
+					self.checking_array.append(False)
+					self.text_to_type.set_text([self.previous_state,
+											('netural', self.text[self.cursor_pointer+1:])])
+				self.cursor_pointer +=1
 
 			else:
-				if len(user_args[1]) >= self.indexpointer:
+				if len(user_args[1]) >= self.cursor_pointer:
 
-					self.keyEntry = user_args[1][self.indexpointer]
+					self.keypress = user_args[1][self.cursor_pointer]
 
-					if self.keyEntry == self.sentenceArr[self.indexpointer]:
-						self.checkArr.append(True)
-						self.previousState.append(('rightinput', self.text[self.indexpointer:self.indexpointer+1]))
+					if self.keypress == self.sentence_array[self.cursor_pointer]:
+						self.checking_array.append(True)
+						self.previous_state.append(('rightinput', self.text[self.cursor_pointer:self.cursor_pointer+1]))
 						
-						self.typeText.set_text([ self.previousState,
-												('netural', self.text[self.indexpointer+1:])])
+						self.text_to_type.set_text([ self.previous_state,
+												('netural', self.text[self.cursor_pointer+1:])])
 						
-						self.urwidloop.screen.clear()
+						self.urwid_loop.screen.clear()
 
 					else:
-						self.previousState.append(('wronginput', self.text[self.indexpointer:self.indexpointer+1]))
-						self.checkArr.append(False)
-						self.typeText.set_text([ self.previousState,
-												('netural', self.text[self.indexpointer+1:])])
+						self.previous_state.append(('wronginput', self.text[self.cursor_pointer:self.cursor_pointer+1]))
+						self.checking_array.append(False)
+						self.text_to_type.set_text([ self.previous_state,
+												('netural', self.text[self.cursor_pointer+1:])])
 						
-						self.urwidloop.screen.clear()
+						self.urwid_loop.screen.clear()
 
-					self.indexpointer +=1
+					self.cursor_pointer +=1
 				else:
-					self.previousState.pop()
-					self.indexpointer -=1
-					self.typeText.set_text([ self.previousState,
-												('netural', self.text[self.indexpointer:])])
+					self.previous_state.pop()
+					self.cursor_pointer -=1
+					self.text_to_type.set_text([ self.previous_state,
+												('netural', self.text[self.cursor_pointer:])])
 
-					self.urwidloop.screen.clear()
+					self.urwid_loop.screen.clear()
 
 		else:
-			time = self.timerComponent.cancel_timer(task=self.Timertask)
-			self.results = Results(checkarr=self.checkArr,
+			time = self.timer_component.cancel_timer(task=self.timer_task)
+			self.results = Results(checking_array=self.checking_array,
 								   time=time
 									   )
-			self.parent.widget_list = [self.results.pile()]
+			self.parent_widget.widget_list = [self.results.pile()]
 
 
 	async def timer_done(self, *user_args):
-		await self.Timertask
-		time = self.timerComponent.cancel_timer(task=self.Timertask)
-		self.results = Results(checkarr=self.checkArr,
+		await self.timer_task
+		time = self.timer_component.cancel_timer(task=self.timer_task)
+		self.results = Results(checking_array=self.checking_array,
 								   time=time
 									   )
-		self.parent.widget_list = [self.results.pile()]
+		self.parent_widget.widget_list = [self.results.pile()]
 
 	def reset_test(self, *user_args):
-		try:
-			self.timerComponent.resetTimer(task=self.Timertask)
-			self.cursorPlaceholder.set_edit_text('')
+		if self.cursor_pointer != 0:
+			self.timer_component.reset_timer(task=self.timer_task)
+			self.cursor_placer.set_edit_text('')
 			
-			self.indexpointer = 0
-			self.previousState = []
-			self.checkArr = []
-			self.typeText.set_text(('netural', self.text))
+			self.cursor_pointer = 0
+			self.previous_state = []
+			self.checking_array = []
+		self.text_to_type.set_text(('netural', self.text))
 			
-			self.urwidloop.screen.clear()
-		except AttributeError:
-			pass	
+		self.urwid_loop.screen.clear()	
 			
 	def new_test(self, *user_args):
-		self.text = get_text()
-		self.sentenceArr = list(self.text)
-
+		self.text = get_text(3)
+		self.sentence_array = list(self.text)
 		self.reset_test()
-
-
 		
 
 	def exit(self, *user_args):
