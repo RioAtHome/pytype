@@ -20,7 +20,6 @@ class Typing(urwid.Edit):
 		if self.cursor_pointer != len(self.sentence_array) - 1:
 			# Beginning of the sentence
 			# Yes
-
 			if self.cursor_pointer == 0:
 				self.input_char = string_typed
 				# is input_char correct?
@@ -79,10 +78,21 @@ class Typing(urwid.Edit):
 			return
 		# Reached end of sentence.
 		else:
+			self.input_char = string_typed[self.cursor_pointer]
+			
+			if self.input_char == self.sentence_array[self.cursor_pointer]:
+				self.checking_array.append(True)
+
+			else:
+				self.checking_array.append(False)
+
 			return(self.typing_start)
 			
 
 	def get_results(self):
+		if self.checking_array == []:
+			return
+
 		return(self.checking_array)
 
 	def reset_test(self):

@@ -33,7 +33,7 @@ class Main:
 		self.urwid_loop = urwid.MainLoop(self.filler, palette, event_loop=self.async_loop)
 		
 		urwid.connect_signal(self.typing_component, 'change', self.type_checking)
-		urwid.connect_signal(self.exit_button, 'click', self._exit)
+		urwid.connect_signal(self.exit_button, 'click', self.exit_)
 		urwid.connect_signal(self.new_test, 'click', self._new_test)
 
 	def type_checking(self, _, string_typed):
@@ -87,7 +87,7 @@ class Main:
 
 
 
-	def _exit(self, *user_args):
+	def exit_(self, *user_args):
 		raise urwid.ExitMainLoop()
 
 
