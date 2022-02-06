@@ -53,6 +53,7 @@ class Main:
 	def type_checking(self, _, string_typed):
 		typing_status = self.typing_component.check_input(string_typed)
 		if(typing_status == True):
+			self.timer_componenet.set_timer()
 			self.reset_test.set_signal(self._reset_test)
 			self.timer_task = asyncio.create_task(self.timer_componenet.start_timer())
 			self.event_manager.create_task(self.timer_done())
@@ -95,7 +96,7 @@ class Main:
 		self.timer_task.cancel()
 		self.time = self.timer_componenet.cancel_timer()
 
-		self.buttons_col.widget_list = [self.exit_button]
+		# self.buttons_col.widget_list = [self.exit_button]
 
 		self.results_widget = urwid.Padding(Results(self.typing_component.get_results(), self.time), left=2, right=2)
 		self.container_results = urwid.LineBox(self.results_widget)
