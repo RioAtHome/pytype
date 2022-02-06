@@ -31,7 +31,7 @@ class Timer(urwid.Edit):
 	def reset_timer(self):
 		super().set_edit_text(f'{self.time_count}')
 
-	def cancel_timer(self):
+	def get_time_passed(self):
 		return (self.time_count - self.timer)
 
 	def valid_char(self, ch):

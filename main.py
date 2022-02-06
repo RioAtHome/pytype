@@ -18,8 +18,8 @@ palette = [('netural', '', ''),
 # To do:
 # [x] add the ability to change timer as user please
 # [x] Style results more..
-# [] Reset and new test buttons work after completion
-# [] make defualt text if no connection is available
+# [x] Reset and new test buttons work after completion
+# [x] make default text if no connection is available
 # [] save user texts
 # [] save user records
 # [] add theme palettes
@@ -30,11 +30,12 @@ palette = [('netural', '', ''),
 
 
 class Main:
-	def __init__(self):
+	def __init__(self, text, timer):
+		self.timer_task = None
 		self.event_manager = asyncio.get_event_loop()
 
-		self.timer_componenet = Timer(timer=10, align='center')
-		self.typing_component = Typing(get_text())
+		self.timer_componenet = Timer(timer=timer, align='center')
+		self.typing_component = Typing(text)
 		self.container_typing = urwid.LineBox(self.typing_component)
 		self.container_timer = urwid.LineBox(self.timer_componenet)
 
@@ -57,6 +58,18 @@ class Main:
 		urwid.connect_signal(self.typing_component, 'change', self.type_checking)
 
 
+
+	def setup_widget(self, text, timer):
+		self.timer_componenet = Timer(timer=timer, align='center')
+		self.typing_component = Typing(text)
+		self.container_typing = urwid.LineBox(self.typing_component)
+		self.container_timer = urwid.LineBox(self.timer_componenet)
+
+		return([self.container_timer, self.container_typing])
+
+	
+
+
 	def type_checking(self, _, string_typed):
 		typing_status = self.typing_component.check_input(string_typed)
 		if(typing_status == True):
@@ -76,51 +89,61 @@ class Main:
 
 	def _reset_test(self, *user_args):
 		urwid.disconnect_signal(self.typing_component, 'change', self.type_checking)
-		
-		self.timer_task.cancel()
+		if self.timer_task:
+			self.timer_task.cancel()
 		self.timer_componenet.reset_timer()
 		self.typing_component.reset_test()
 
+		self.main_pile.widget_list = [self.container_timer, self.container_typing, self.container_buttons_col]
 		urwid.connect_signal(self.typing_component, 'change', self.type_checking)
 
 
-	def _new_test(self, user_args):
+	def _new_test(self, user_text=None, *args):
 		# Avoiding the exception isnt the best way..
+		user_text = get_text()
 
 		urwid.disconnect_signal(self.typing_component, 'change', self.type_checking)
-		try:
-			self.timer_task.cancel()
-		except AttributeError:
-			pass
-
-		self.timer_componenet.reset_timer()
-		self.typing_component.new_test(get_text())
+		
+		if self.timer_task:
+			self.timertask.cancel()
+		else:
+			self.timer_componenet.reset_timer()
+			self.typing_component.new_test(user_text)
+		
+		self.main_pile.widget_list = [self.container_timer, self.container_typing, self.container_buttons_col]
 		
 		urwid.connect_signal(self.typing_component, 'change', self.type_checking)
 
 
 	def test_done(self):
 		self.timer_task.cancel()
-		time = self.timer_componenet.cancel_timer()
+
+		time = self.timer_componenet.get_time_passed()
 		results_array = self.typing_component.get_results()
 
 		accuracy_text = urwid.Text(f'Accuracy:{calculate_acc(results_array)}%', align='center')
 		word_per_min_text = urwid.Text(f'Typing Speed:{word_per_min(results_array, time)}/wpm', align='center')
-		accuracy_container = urwid.LineBox(accuracy_text if)
+		accuracy_container = urwid.LineBox(accuracy_text)
 		word_per_min_container = urwid.LineBox(word_per_min_text)
 		results_col = urwid.Columns([accuracy_container, word_per_min_container], dividechars=2)
-
+		
 		
 
 		self.results_widget = urwid.Padding(results_col, left=2, right=2)
 		self.container_results = urwid.LineBox(self.results_widget)
 
+		self.timer_task = None
+
 		self.main_pile.widget_list = [self.container_results,
 									      self.container_buttons_col]
+
+
 
 	def exit_(self, *user_args):
 		raise urwid.ExitMainLoop()
 
 
 if __name__ == "__main__":
-	Main().urwid_loop.run()
+	text = get_text()
+
+	Main(text=text, timer=20).urwid_loop.run()
