@@ -18,8 +18,9 @@ class Timer(urwid.Edit):
 			
 	async def start_timer(self):
 		self.timer = self.time_count
+
 		while True:
-			logging.info(self.time_count)
+			
 			if self.timer == 0:
 				return
 

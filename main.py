@@ -3,7 +3,7 @@ import logging
 import asyncio
 from widgets.typing import Typing
 from widgets.timer import Timer
-from widgets.results import Results
+from util.calculate_util import calculate_acc, word_per_min
 from widgets.boxbutton import BoxButton
 from util.textgenerator import get_text
 
@@ -16,11 +16,17 @@ palette = [('netural', '', ''),
 ]
 
 # To do:
-# add the ability to change timer as user please
-# make defualt text if no connection is available
-# save user texts
-# save user records
-# add theme palettes
+# [x] add the ability to change timer as user please
+# [] Style results more..
+# [] Reset and new test buttons work after completion
+# [] make defualt text if no connection is available
+# [] save user texts
+# [] save user records
+# [] add theme palettes
+
+# Bugs:
+# If user didnt input anything, results will be 100%, we dont want that.
+
 
 class Main:
 	def __init__(self):
@@ -94,11 +100,18 @@ class Main:
 
 	def test_done(self):
 		self.timer_task.cancel()
-		self.time = self.timer_componenet.cancel_timer()
+		time = self.timer_componenet.cancel_timer()
+		results_array = self.typing_component.get_results()
 
-		# self.buttons_col.widget_list = [self.exit_button]
+		accuracy_text = urwid.Text(f'Accuracy:{calculate_acc(results_array)}%', align='center')
+		word_per_min_text = urwid.Text(f'Typing Speed:{word_per_min(results_array, time)}/wpm', align='center')
+		accuracy_container = urwid.LineBox(accuracy_text if)
+		word_per_min_container = urwid.LineBox(word_per_min_text)
+		results_col = urwid.Columns([accuracy_container, word_per_min_container], dividechars=2)
 
-		self.results_widget = urwid.Padding(Results(self.typing_component.get_results(), self.time), left=2, right=2)
+		
+
+		self.results_widget = urwid.Padding(results_col, left=2, right=2)
 		self.container_results = urwid.LineBox(self.results_widget)
 
 		self.main_pile.widget_list = [self.container_results,
