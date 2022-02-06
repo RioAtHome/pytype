@@ -17,12 +17,13 @@ palette = [('netural', '', ''),
 
 # To do:
 # [x] add the ability to change timer as user please
-# [] Style results more..
+# [x] Style results more..
 # [] Reset and new test buttons work after completion
 # [] make defualt text if no connection is available
 # [] save user texts
 # [] save user records
 # [] add theme palettes
+# [] add colors to results precentages, ie 90+ green 70-80 green-ish... like that
 
 # Bugs:
 # If user didnt input anything, results will be 100%, we dont want that.
