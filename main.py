@@ -34,11 +34,7 @@ class Main:
         self.timer_task = None
         self.event_manager = asyncio.get_event_loop()
 
-        self.timer_componenet = Timer(timer=timer, align='center')
-        self.typing_component = Typing(text)
-        self.container_typing = urwid.LineBox(self.typing_component)
-        self.container_timer = urwid.LineBox(self.timer_componenet)
-
+        self.settup_widgets = self.setup_widget(text=get_text(), timer=20)
         self.exit_button = BoxButton('Quit', on_press=self.exit_)
         self.reset_test = BoxButton('Reset')
         self.new_test = BoxButton('New Test', on_press=self._new_test)
@@ -47,8 +43,8 @@ class Main:
                                           self.new_test])
         self.container_buttons_col = urwid.LineBox(self.buttons_col)
 
-        self.main_pile = urwid.Pile([self.container_timer, self.container_typing,
-                                     self.container_buttons_col])
+        self.settup_widgets.append(self.container_buttons_col)
+        self.main_pile = urwid.Pile(self.settup_widgets)
 
         self.padding = urwid.Padding(self.main_pile, left=2, right=2)
         self.filler = urwid.Filler(self.padding)
@@ -67,7 +63,7 @@ class Main:
 
         return([self.container_timer, self.container_typing])
 
-    def type_checking(self, _, string_typed):
+    def type_checking(self, string_typed, _=None):
         typing_status = self.typing_component.check_input(string_typed)
         if(typing_status is True):
             self.timer_componenet.set_timer()
