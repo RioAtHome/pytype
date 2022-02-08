@@ -9,15 +9,16 @@ logging.basicConfig(filename='example.log', encoding='utf-8',
 
 class Timer(urwid.Edit):
     def __init__(self, timer=60, align='left'):
+        self.timer = timer
         self.time_count = timer
-        super().__init__(caption='Timer:', edit_text=str(timer),
+        super().__init__(caption='Timer:', edit_text=str(self.timer),
                          align=align)
 
     def set_timer(self):
         try:
             self.time_count = int(super().get_edit_text())
         except TypeError:
-            raise TypeError("edited text is in wrong format: can't transform from str to int.")
+            raise TypeError("can't transform from str to int.")
 
     async def start_timer(self):
         self.timer = self.time_count

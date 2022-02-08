@@ -14,7 +14,7 @@ class Typing(urwid.Edit):
         self.cursor_pointer = 0
         self.typing_start = True
 
-        super().__init__(caption=self.sentence_string, edit_text='')
+        super().__init__(caption=('netural', self.sentence_string), edit_text='')
 
     def check_input(self, string_typed):
         if self.cursor_pointer != len(self.sentence_array) - 1:
@@ -101,7 +101,7 @@ class Typing(urwid.Edit):
         self.cursor_pointer = 0
         self.typing_start = True
 
-        super().set_caption(self.sentence_string)
+        super().set_caption(('netural', self.sentence_string))
         super().set_edit_text('')
 
     def new_test(self, sentence_string):

@@ -1,7 +1,7 @@
 from ..util.calculate_util import calculate_acc, word_per_min
 
 
-def test_calculate_acc_returns_correct_values():
+def test_calculate_util_returns_correct_values():
 
     test_component_results = [
         True, True, True, True,
