@@ -100,7 +100,7 @@ class Main:
         urwid.disconnect_signal(self.typing_component, 'change', self.type_checking)
 
         if self.timer_task:
-            self.timertask.cancel()
+            self.timer_task.cancel()
         else:
             self.timer_componenet.reset_timer()
             self.typing_component.new_test(user_text)
@@ -112,7 +112,7 @@ class Main:
 
     def test_done(self):
         if self.timer_task:
-            self.timertask.cancel()
+            self.timer_task.cancel()
 
         time = self.timer_componenet.get_time_passed()
         results_array = self.typing_component.get_results()
