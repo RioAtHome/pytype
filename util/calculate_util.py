@@ -8,7 +8,12 @@ def calculate_acc(checking_array):
 
 
 def word_per_min(checking_array, time):
-    # imma use median word length
-    wpm = (len(checking_array) / 5) / (time / 60)
+    if time == 0:
+        time = 1
+
+    try:
+        wpm = (len(checking_array) / 5) / (time / 60)
+    except ZeroDivisionError:
+        ZeroDivisionError('wow, so fast')
 
     return(int(wpm))

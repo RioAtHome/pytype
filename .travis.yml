@@ -1,6 +1,8 @@
 language: python
+python:
+  - 3.8
 install:
   - pip install -r requirements.txt
 script:
   - python -m pytest -v
-  - flake8
+  - flake8 --exclude=venv* --statistics

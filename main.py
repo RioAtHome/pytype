@@ -34,7 +34,7 @@ class Main:
         self.timer_task = None
         self.event_manager = asyncio.get_event_loop()
 
-        self.settup_widgets = self.setup_widget(text=get_text(), timer=20)
+        self.settup_widgets = self.setup_widget(text=text, timer=timer)
         self.exit_button = BoxButton('Quit', on_press=self.exit_)
         self.reset_test = BoxButton('Reset')
         self.new_test = BoxButton('New Test', on_press=self._new_test)
@@ -63,12 +63,17 @@ class Main:
 
         return([self.container_timer, self.container_typing])
 
-    def type_checking(self, string_typed, _=None):
+    def type_checking(self, _, string_typed):
         typing_status = self.typing_component.check_input(string_typed)
         if(typing_status is True):
             self.timer_componenet.set_timer()
             self.reset_test.set_signal(self._reset_test)
-            self.timer_task = asyncio.create_task(self.timer_componenet.start_timer())
+
+            try:
+                self.timer_task = asyncio.create_task(self.timer_componenet.start_timer())
+            except RuntimeError:
+                self.timer_task = None
+
             self.event_manager.create_task(self.timer_done())
 
         elif(typing_status is False):
@@ -79,9 +84,9 @@ class Main:
         self.test_done()
 
     def _reset_test(self, *user_args):
-        urwid.disconnect_signal(self.typing_component, 'change', self.type_checking)
         if self.timer_task:
             self.timer_task.cancel()
+        urwid.disconnect_signal(self.typing_component, 'change', self.type_checking)
         self.timer_componenet.reset_timer()
         self.typing_component.reset_test()
 
@@ -106,7 +111,8 @@ class Main:
         urwid.connect_signal(self.typing_component, 'change', self.type_checking)
 
     def test_done(self):
-        self.timer_task.cancel()
+        if self.timer_task:
+            self.timertask.cancel()
 
         time = self.timer_componenet.get_time_passed()
         results_array = self.typing_component.get_results()
