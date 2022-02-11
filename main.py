@@ -3,12 +3,17 @@ import asyncio
 import urwid
 from widgets.typing import Typing
 from widgets.timer import Timer
+from widgets.recordswidget import RecordsPile
+from util.file_handling import read_file, EmptyRecords, write_file, create_file, FileNotFound
 from util.calculate_util import calculate_acc, word_per_min
 from widgets.boxbutton import BoxButton
 from util.textgenerator import get_text
+from datetime import date
 
 logging.basicConfig(filename='example.log', encoding='utf-8',
                     level=logging.DEBUG)
+
+PATH = "./user_records.json"
 
 palette = [('netural', '', ''),
            ('wronginput', 'dark red', ''),
@@ -38,12 +43,13 @@ class Main:
         self.exit_button = BoxButton('Quit', on_press=self.exit_)
         self.reset_test = BoxButton('Reset')
         self.new_test = BoxButton('New Test', on_press=self._new_test)
-
+        self.previous_records = BoxButton('Previous Records', on_press=self.get_records)
         self.buttons_col = urwid.Columns([self.exit_button, self.reset_test,
-                                          self.new_test])
+                                          self.new_test, self.previous_records])
         self.container_buttons_col = urwid.LineBox(self.buttons_col)
 
         self.settup_widgets.append(self.container_buttons_col)
+
         self.main_pile = urwid.Pile(self.settup_widgets)
 
         self.padding = urwid.Padding(self.main_pile, left=2, right=2)
@@ -129,9 +135,27 @@ class Main:
         self.timer_task = None
         self.main_pile.widget_list = [self.container_results,
                                       self.container_buttons_col]
+        user_data = {
+            "Word Per Min":word_per_min(results_array, time),
+            "Accuracy":calculate_acc(results_array),
+            "Timer": time,
+            "Date": date.today().strftime("%d/%m/%Y")
+        }
+        write_file(path=PATH, key_value='Previous records', user_data=user_data)
+
 
     def exit_(self, *user_args):
         raise urwid.ExitMainLoop()
+
+    def get_records(self, *args):
+        try:
+            state = read_file(PATH, key_value="Previous records")
+        except FileNotFound:
+            state=None
+            create_file(PATH)
+
+        self.main_pile.widget_list = [RecordsPile(state),  self.container_buttons_col]
+
 
 
 if __name__ == "__main__":

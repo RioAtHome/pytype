@@ -1,13 +1,24 @@
 import json
+import os
+
+class EmptyRecords(Exception):
+    pass
+
+
+class FileNotFound(Exception):
+    pass
 
 
 def read_file(path, key_value, slice=5):
     KNOWN_KEYS = ("Previous records", "User text", "all")
 
+    if not os.path.isfile(path):
+        raise FileNotFound
+
     if key_value not in KNOWN_KEYS:
         raise TypeError(f"Unknown Record: specify a record that is in {KNOWN_KEYS}")
 
-    if slice < 0 or slice > 20:
+    if slice < 0 or slice > 7:
         raise TypeError("Invalid slice number")
 
     if key_value == "all":
@@ -21,6 +32,9 @@ def read_file(path, key_value, slice=5):
             previous_state = previous_state[key_value]
         elif slice < len(previous_state[key_value]):
             previous_state = previous_state[key_value][:slice]
+
+    if previous_state == []:
+        raise EmptyRecords("No Previous Records")
 
     return previous_state
 
@@ -44,10 +58,10 @@ def write_file(path, key_value, user_data):
     with open(path, 'w+') as user_records:
         json.dump(previous_state, user_records, indent=4)
 
-
-
-
-
-write_file("./user_records.json", key_value="Previous records", user_data=("strings", 'strigns'))
-
-
+def create_file(path):
+    state = {
+            'Previous records': [],
+            'User text': []
+        }
+    with open(path, 'w+') as user_records:
+        json.dump(state, user_records, indent=4)
