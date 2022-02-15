@@ -3,3 +3,5 @@ __pycache__/
 *.py[cod]
 *.log
 testies.py
+user_records.json
+

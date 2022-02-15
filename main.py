@@ -3,12 +3,17 @@ import asyncio
 import urwid
 from widgets.typing import Typing
 from widgets.timer import Timer
+from widgets.recordswidget import RecordsPile
+from util.file_handling import read_file, write_file, create_file, FileNotFound
 from util.calculate_util import calculate_acc, word_per_min
 from widgets.boxbutton import BoxButton
 from util.textgenerator import get_text
+from datetime import date
 
 logging.basicConfig(filename='example.log', encoding='utf-8',
                     level=logging.DEBUG)
+
+PATH = "./user_records.json"
 
 palette = [('netural', '', ''),
            ('wronginput', 'dark red', ''),
@@ -20,48 +25,59 @@ palette = [('netural', '', ''),
 # [x] Style results more..
 # [x] Reset and new test buttons work after completion
 # [x] make default text if no connection is available
-# [] save user texts
+# [x] save user texts
 # [] save user records
+# [] add argparser so user can quickly enter his desired text/timer
 # [] add theme palettes
 # [] add colors to results precentages, ie 90+ green 70-80 green-ish... like that
 
 # Bugs:
 # If user didnt input anything, results will be 100%, we dont want that.
 
+# event manager exceptions, text exception, timer exception
 
-class Main:
-    def __init__(self, text, timer):
+
+class AppWidget(urwid.Filler):
+    # should only initalize the loop and main pile..
+    # lets make every function more independently
+    def __init__(self, text, timer, event_manager):
         self.timer_task = None
-        self.event_manager = asyncio.get_event_loop()
+        self.event_manager = event_manager
+        # setting up typing/timer widgets
 
-        self.settup_widgets = self.setup_widget(text=text, timer=timer)
-        self.exit_button = BoxButton('Quit', on_press=self.exit_)
+        typer_widget = self.setup_typing_widget(text)
+        timer_widget = self.setup_timer_widget(timer)
+
+        # setting up button component
+        exit_button = BoxButton('Quit', on_press=self.exit_)
         self.reset_test = BoxButton('Reset')
         self.new_test = BoxButton('New Test', on_press=self._new_test)
+        previous_records = BoxButton('Previous Records', on_press=self.get_records)
+        buttons_col = urwid.Columns([exit_button, self.reset_test, self.new_test, previous_records])
 
-        self.buttons_col = urwid.Columns([self.exit_button, self.reset_test,
-                                          self.new_test])
-        self.container_buttons_col = urwid.LineBox(self.buttons_col)
+        self.container_buttons_col = urwid.LineBox(buttons_col)
 
-        self.settup_widgets.append(self.container_buttons_col)
-        self.main_pile = urwid.Pile(self.settup_widgets)
+        # setup main_pile correctly, where you can change upper widgets as you like, but buttons stay the same!
+        # function that setups the mainpile
+        self.main_pile = urwid.Pile([timer_widget, typer_widget, self.container_buttons_col])
 
         self.padding = urwid.Padding(self.main_pile, left=2, right=2)
-        self.filler = urwid.Filler(self.padding)
 
-        self.async_loop = urwid.AsyncioEventLoop(loop=self.event_manager)
-        self.urwid_loop = urwid.MainLoop(self.filler, palette,
-                                         event_loop=self.async_loop)
+        super().__init__(self.padding)
 
         urwid.connect_signal(self.typing_component, 'change', self.type_checking)
 
-    def setup_widget(self, text, timer):
+    def setup_timer_widget(self, timer):
         self.timer_componenet = Timer(timer=timer, align='center')
-        self.typing_component = Typing(text)
-        self.container_typing = urwid.LineBox(self.typing_component)
-        self.container_timer = urwid.LineBox(self.timer_componenet)
+        container_timer = urwid.LineBox(self.timer_componenet)
 
-        return([self.container_timer, self.container_typing])
+        return container_timer
+
+    def setup_typing_widget(self, text):
+        self.typing_component = Typing(text)
+        container_typing = urwid.LineBox(self.typing_component)
+
+        return container_typing
 
     def type_checking(self, _, string_typed):
         typing_status = self.typing_component.check_input(string_typed)
@@ -129,12 +145,31 @@ class Main:
         self.timer_task = None
         self.main_pile.widget_list = [self.container_results,
                                       self.container_buttons_col]
+        user_data = {
+            "Word Per Min": word_per_min(results_array, time),
+            "Accuracy": calculate_acc(results_array),
+            "Timer": time,
+            "Date": date.today().strftime("%d/%m/%Y")
+        }
+        write_file(path=PATH, key_value='Previous records', user_data=user_data)
 
     def exit_(self, *user_args):
         raise urwid.ExitMainLoop()
 
+    def get_records(self, *args):
+        try:
+            state = read_file(PATH, key_value="Previous records")
+        except FileNotFound:
+            state = None
+            create_file(PATH)
+
+        self.main_pile.widget_list = [RecordsPile(state),  self.container_buttons_col]
+
 
 if __name__ == "__main__":
     text = get_text()
-
-    Main(text=text, timer=20).urwid_loop.run()
+    event_manager = asyncio.get_event_loop()
+    app_widget = AppWidget(text=text, timer=20, event_manager=event_manager)
+    async_loop = urwid.AsyncioEventLoop(loop=event_manager)
+    urwid_loop = urwid.MainLoop(app_widget, palette, event_loop=async_loop)
+    urwid_loop.run()
