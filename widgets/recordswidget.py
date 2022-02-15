@@ -6,10 +6,12 @@ PATH = "./user_records.json"
 class RecordsPile(urwid.Pile):
     def __init__(self, user_records=None):
         widget_title = urwid.Text("User Previous Records:")
-        wpm, acc, timer, date = urwid.Text("WPM"),urwid.Text("ACC"),urwid.Text("TIMER"),urwid.Text("DATE")
-        information_col =    urwid.Columns([wpm, acc, timer, date])
+        num, wpm, acc, timer, date = urwid.Text("Number"), urwid.Text("WPM"),
+        urwid.Text("ACC"), urwid.Text("TIMER"), urwid.Text("DATE")
+
+        information_col = urwid.Columns([num, wpm, acc, timer, date])
         divider = urwid.Divider('-')
-        components = [widget_title, divider,information_col, divider]
+        components = [widget_title, divider, information_col, divider]
         super().__init__(components)
 
         if not user_records:
@@ -23,9 +25,6 @@ class RecordsPile(urwid.Pile):
             acc = urwid.Text(f'{entry["Accuracy"]}')
             timer = urwid.Text(f'{entry["Timer"]}')
             date = urwid.Text(f'{entry["Date"]}')
-            col = urwid.Columns([num, wpm, timer, date])
-            super().widget_list.append(col)        
+            col = urwid.Columns([num, wpm, acc, timer, date])
+            super().widget_list.append(col)
             super().widget_list.append(divider)
-
-
-

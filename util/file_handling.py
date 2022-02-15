@@ -1,6 +1,7 @@
 import json
 import os
 
+
 class EmptyRecords(Exception):
     pass
 
@@ -58,10 +59,11 @@ def write_file(path, key_value, user_data):
     with open(path, 'w+') as user_records:
         json.dump(previous_state, user_records, indent=4)
 
+
 def create_file(path):
     state = {
             'Previous records': [],
-            'User text': []
-        }
+            'User text': [],
+    }
     with open(path, 'w+') as user_records:
         json.dump(state, user_records, indent=4)
